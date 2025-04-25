@@ -10,6 +10,22 @@ const Joi = require('joi'); // Import Joi for validation
 
 const validator = require('validator'); // Import the 'validator' library for string validation and sanitization
 
+const basicAuth = require('express-basic-auth'); // Require express-basic-auth
+
+// Basic Authentication
+const users = { 'admin': 'secret' }; // Replace with more secure storage in production
+app.use(basicAuth({
+  users: users,
+  challenge: true, // Send WWW-Authenticate header to trigger browser login
+  unauthorizedResponse: getUnauthorizedResponse
+}));
+
+function getUnauthorizedResponse(req) {
+  return req.auth
+    ? ('Credentials ' + req.auth.user + ':' + req.auth.password + ' rejected')
+    : 'No credentials provided'
+}
+
 // Program validation schema
 const programSchema = Joi.object({
   id: Joi.string().required(),
