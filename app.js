@@ -87,3 +87,20 @@ app.post('/programs', (req, res) => {
     });
   });
   
+  app.post('/clients', (req, res) => {
+    const newClient = {
+      id: req.body.id,
+      name: req.body.name,
+      dob: req.body.dob
+    };
+  
+    db.run(`INSERT INTO clients (id, name, dob) VALUES (?, ?, ?)`, [newClient.id, newClient.name, newClient.dob], function(err) {
+      if (err) {
+        console.error(err.message);
+        return res.status(500).send('Error creating client');
+      }
+      console.log(`A row has been inserted with rowid ${this.lastID}`);
+      res.status(201).send(newClient);
+    });
+  });
+  
