@@ -104,3 +104,18 @@ app.post('/programs', (req, res) => {
     });
   });
   
+  app.post('/clients/:clientId/enroll', (req, res) => {
+    const clientId = req.params.clientId;
+    const programId = req.body.programId;
+  
+    // Insert into client_programs table
+    db.run(`INSERT INTO client_programs (clientId, programId) VALUES (?, ?)`, [clientId, programId], function(err) {
+      if (err) {
+        console.error(err.message);
+        return res.status(500).send('Error enrolling client in program');
+      }
+      console.log(`A row has been inserted with rowid ${this.lastID}`);
+      res.status(201).send({ clientId, programId });
+    });
+  });
+  
