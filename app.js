@@ -8,6 +8,8 @@ const port = 3000; // Define the port the server will listen on
 
 const Joi = require('joi'); // Import Joi for validation
 
+const validator = require('validator'); // Import the 'validator' library for string validation and sanitization
+
 // Program validation schema
 const programSchema = Joi.object({
   id: Joi.string().required(),
@@ -23,14 +25,15 @@ const clientSchema = Joi.object({
 
 app.use(bodyParser.json()); // Use body-parser middleware to parse JSON request bodies
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack); // Log the error stack
+    res.status(500).send({ error: 'Something went wrong!' });
+});
+
 // Define a route for the root path ("/")
 app.get('/', (req, res) => {
   res.send('Health Information System API'); // Send a response to the client
-});
-
-// Start the server and listen for incoming requests on the specified port
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`); // Log a message to the console when the server starts
 });
 
 // Initialize SQLite database
@@ -90,15 +93,15 @@ app.post('/programs', (req, res) => {
     }
 
     const newProgram = {
-        id: value.id, // Use the validated id from the request body
-        name: value.name // Use the validated name from the request body
+        id: validator.escape(value.id), // Sanitize input
+        name: validator.escape(value.name) // Sanitize input
     };
   
     // Insert the new program into the 'programs' table
     db.run(`INSERT INTO programs (id, name) VALUES (?, ?)`, [newProgram.id, newProgram.name], function(err) {
       if (err) {
         console.error(err.message); // Log the actual DB error
-        return res.status(500).send('Error creating program'); // Send a generic error response
+        return res.status(500).send({ error: 'Failed to create program' }); // Send a generic error response
       }
   
       // Log the insertion and return the created program in the response
@@ -116,16 +119,16 @@ app.post('/programs', (req, res) => {
     }
 
     const newClient = {
-        id: value.id, // Use the validated id from the request body
-        name: value.name, // Use the validated name from the request body
-        dob: value.dob // Use the validated dob from the request body
+        id: validator.escape(value.id), // Sanitize input
+        name: validator.escape(value.name), // Sanitize input
+        dob: validator.escape(value.dob)  // Sanitize input
     };
   
     // Insert the client into the database
     db.run(`INSERT INTO clients (id, name, dob) VALUES (?, ?, ?)`, [newClient.id, newClient.name, newClient.dob], function(err) {
       if (err) {
         console.error(err.message); // Something went wrong during insert
-        return res.status(500).send('Error creating client');
+        return res.status(500).send({ error: 'Failed to create client' });
       }
 
       // Log success and respond with the created client object
@@ -143,7 +146,7 @@ app.post('/programs', (req, res) => {
     db.run(`INSERT INTO client_programs (clientId, programId) VALUES (?, ?)`, [clientId, programId], function(err) {
       if (err) {
         console.error(err.message); // Log DB error if any
-        return res.status(500).send('Error enrolling client in program');
+        return res.status(500).send({ error: 'Failed to enroll client in program' });
       }
 
       // Log success and return a confirmation response
@@ -168,7 +171,7 @@ app.post('/programs', (req, res) => {
     db.all(sql, params, (err, rows) => {
       if (err) {
         console.error(err.message); // Execute the query with optional parameters
-        return res.status(500).send('Error fetching clients');
+        return res.status(500).send({ error: 'Failed to enroll client in program' });
       }
 
       // Return the list of matching clients (or all if no query)
@@ -184,10 +187,10 @@ app.post('/programs', (req, res) => {
     db.get(`SELECT * FROM clients WHERE id = ?`, [clientId], (err, row) => {
       if (err) {
         console.error(err.message); // Log any error that occurs
-        return res.status(500).send('Error fetching client');
+        return res.status(500).send({ error: 'Failed to fetch client' });
       }
       if (!row) {
-        return res.status(404).send('Client not found'); // Handle the case where the client does not exist
+        return res.status(404).send({ error: 'Client not found' }); // Handle the case where the client does not exist
       }
   
       // Fetch enrolled programs
@@ -199,7 +202,7 @@ app.post('/programs', (req, res) => {
       `, [clientId], (err, programs) => {
         if (err) {
           console.error(err.message); // Log any error that occurs while fetching programs
-          return res.status(500).send('Error fetching enrolled programs');
+          return res.status(500).send({ error: 'Failed to fetch enrolled programs' });
         }
   
         // Combine client details with their programs and return as response
@@ -212,3 +215,7 @@ app.post('/programs', (req, res) => {
     });
   });
   
+// Start the server and listen for incoming requests on the specified port
+app.listen(port, () => {
+    console.log(`Server listening on port ${port}`); // Log a message to the console when the server starts
+});
