@@ -87,67 +87,82 @@ app.post('/programs', (req, res) => {
     });
   });
   
+  // Endpoint to create a new client
   app.post('/clients', (req, res) => {
+    // Grab client details from the request body
     const newClient = {
       id: req.body.id,
       name: req.body.name,
       dob: req.body.dob
     };
   
+    // Insert the client into the database
     db.run(`INSERT INTO clients (id, name, dob) VALUES (?, ?, ?)`, [newClient.id, newClient.name, newClient.dob], function(err) {
       if (err) {
-        console.error(err.message);
+        console.error(err.message); // Something went wrong during insert
         return res.status(500).send('Error creating client');
       }
+
+      // Log success and respond with the created client object
       console.log(`A row has been inserted with rowid ${this.lastID}`);
       res.status(201).send(newClient);
     });
   });
   
+  // Enroll a client into a specific program
   app.post('/clients/:clientId/enroll', (req, res) => {
-    const clientId = req.params.clientId;
-    const programId = req.body.programId;
+    const clientId = req.params.clientId; // Get client ID from the URL
+    const programId = req.body.programId; // Get program ID from the request body
   
     // Insert into client_programs table
     db.run(`INSERT INTO client_programs (clientId, programId) VALUES (?, ?)`, [clientId, programId], function(err) {
       if (err) {
-        console.error(err.message);
+        console.error(err.message); // Log DB error if any
         return res.status(500).send('Error enrolling client in program');
       }
+
+      // Log success and return a confirmation response
       console.log(`A row has been inserted with rowid ${this.lastID}`);
       res.status(201).send({ clientId, programId });
     });
   });
   
+  // Fetch all clients, with optional search by name
   app.get('/clients', (req, res) => {
-    const query = req.query.query;
-    let sql = `SELECT * FROM clients`;
+    const query = req.query.query; // Get the search query from URL (if provided)
+    let sql = `SELECT * FROM clients`; // Base SQL query to fetch all clients
     let params = [];
   
+    // If a search query is present, filter by name using LIKE
     if (query) {
       sql += ` WHERE name LIKE ?`;
       params.push(`%${query}%`);
     }
   
+    // Execute the query with optional parameters
     db.all(sql, params, (err, rows) => {
       if (err) {
-        console.error(err.message);
+        console.error(err.message); // Execute the query with optional parameters
         return res.status(500).send('Error fetching clients');
       }
+
+      // Return the list of matching clients (or all if no query)
       res.send(rows);
     });
   });
   
+  // Get details of a specific client by ID, including their enrolled programs
   app.get('/clients/:clientId', (req, res) => {
-    const clientId = req.params.clientId;
+    const clientId = req.params.clientId; // Get the client ID from the URL parameter
   
+    // Fetch the client details from the 'clients' table
     db.get(`SELECT * FROM clients WHERE id = ?`, [clientId], (err, row) => {
       if (err) {
-        console.error(err.message);
+        console.error(err.message); // Log any error that occurs
         return res.status(500).send('Error fetching client');
       }
       if (!row) {
-        return res.status(404).send('Client not found');
+        return res.status(404).send('Client not found'); // Handle the case where the client does not exist
       }
   
       // Fetch enrolled programs
@@ -158,15 +173,16 @@ app.post('/programs', (req, res) => {
         WHERE cp.clientId = ?
       `, [clientId], (err, programs) => {
         if (err) {
-          console.error(err.message);
+          console.error(err.message); // Log any error that occurs while fetching programs
           return res.status(500).send('Error fetching enrolled programs');
         }
   
+        // Combine client details with their programs and return as response
         const client = {
-          ...row,
-          programs: programs || []
+          ...row, // client details
+          programs: programs || [] // programs the client is enrolled in (empty array if none)
         };
-        res.send(client);
+        res.send(client); // Send the combined client data as response
       });
     });
   });
