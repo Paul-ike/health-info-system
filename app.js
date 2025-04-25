@@ -6,6 +6,21 @@ const sqlite3 = require('sqlite3').verbose(); // Import the SQLite3 and enabling
 const app = express(); // Create an Express application instance
 const port = 3000; // Define the port the server will listen on
 
+const Joi = require('joi'); // Import Joi for validation
+
+// Program validation schema
+const programSchema = Joi.object({
+  id: Joi.string().required(),
+  name: Joi.string().required()
+});
+
+// Client validation schema
+const clientSchema = Joi.object({
+  id: Joi.string().required(),
+  name: Joi.string().required(),
+  dob: Joi.string().isoDate().required()
+});
+
 app.use(bodyParser.json()); // Use body-parser middleware to parse JSON request bodies
 
 // Define a route for the root path ("/")
@@ -68,10 +83,15 @@ const db = new sqlite3.Database('health_info.db', (err) => {
 
 // Route to create a new health program
 app.post('/programs', (req, res) => {
-    // Extract program details from the request body
+    // Validate the incoming request body using the program schema
+    const { error, value } = programSchema.validate(req.body);
+    if (error) {
+        return res.status(400).send(error.details[0].message); // Return validation error if any
+    }
+
     const newProgram = {
-      id: req.body.id,
-      name: req.body.name
+        id: value.id, // Use the validated id from the request body
+        name: value.name // Use the validated name from the request body
     };
   
     // Insert the new program into the 'programs' table
@@ -89,11 +109,16 @@ app.post('/programs', (req, res) => {
   
   // Endpoint to create a new client
   app.post('/clients', (req, res) => {
-    // Grab client details from the request body
+    // Validate the incoming request body using the client schema
+    const { error, value } = clientSchema.validate(req.body);
+    if (error) {
+        return res.status(400).send(error.details[0].message); // Return validation error if any
+    }
+
     const newClient = {
-      id: req.body.id,
-      name: req.body.name,
-      dob: req.body.dob
+        id: value.id, // Use the validated id from the request body
+        name: value.name, // Use the validated name from the request body
+        dob: value.dob // Use the validated dob from the request body
     };
   
     // Insert the client into the database
