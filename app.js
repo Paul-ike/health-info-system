@@ -138,3 +138,36 @@ app.post('/programs', (req, res) => {
     });
   });
   
+  app.get('/clients/:clientId', (req, res) => {
+    const clientId = req.params.clientId;
+  
+    db.get(`SELECT * FROM clients WHERE id = ?`, [clientId], (err, row) => {
+      if (err) {
+        console.error(err.message);
+        return res.status(500).send('Error fetching client');
+      }
+      if (!row) {
+        return res.status(404).send('Client not found');
+      }
+  
+      // Fetch enrolled programs
+      db.all(`
+        SELECT p.id, p.name
+        FROM programs p
+        JOIN client_programs cp ON p.id = cp.programId
+        WHERE cp.clientId = ?
+      `, [clientId], (err, programs) => {
+        if (err) {
+          console.error(err.message);
+          return res.status(500).send('Error fetching enrolled programs');
+        }
+  
+        const client = {
+          ...row,
+          programs: programs || []
+        };
+        res.send(client);
+      });
+    });
+  });
+  
