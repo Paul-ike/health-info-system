@@ -1,6 +1,8 @@
 const express = require('express'); // Import the Express.js framework
 const bodyParser = require('body-parser'); // Import the body-parser middleware
 
+const sqlite3 = require('sqlite3').verbose(); // Import the SQLite3 and enabling verbose mode for better debugging
+
 const app = express(); // Create an Express application instance
 const port = 3000; // Define the port the server will listen on
 
@@ -14,4 +16,52 @@ app.get('/', (req, res) => {
 // Start the server and listen for incoming requests on the specified port
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`); // Log a message to the console when the server starts
+});
+
+// Initialize SQLite database
+const db = new sqlite3.Database('health_info.db', (err) => {
+  if (err) {
+    console.error(err.message);
+  }
+  console.log('Connected to the health_info database.');
+
+  // A: Creating 'programs' table to store health programs
+  db.run(`
+    CREATE TABLE IF NOT EXISTS programs (
+      id TEXT PRIMARY KEY,
+      name TEXT
+    )
+  `, (err) => {
+    if (err) {
+      console.error(err.message);
+    }
+  });
+
+  // A: Creating 'clients' table to store client info (name + DOB)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS clients (
+      id TEXT PRIMARY KEY,
+      name TEXT,
+      dob TEXT
+    )
+  `, (err) => {
+    if (err) {
+      console.error(err.message);
+    }
+  });
+
+  // A: Creating junction table 'client_programs' to handle many-to-many between clients and programs
+  db.run(`
+    CREATE TABLE IF NOT EXISTS client_programs (
+      clientId TEXT,
+      programId TEXT,
+      FOREIGN KEY (clientId) REFERENCES clients(id),
+      FOREIGN KEY (programId) REFERENCES programs(id),
+      PRIMARY KEY (clientId, programId)
+    )
+  `, (err) => {
+    if (err) {
+      console.error(err.message);
+    }
+  });
 });
