@@ -65,3 +65,25 @@ const db = new sqlite3.Database('health_info.db', (err) => {
     }
   });
 });
+
+// Route to create a new health program
+app.post('/programs', (req, res) => {
+    // Extract program details from the request body
+    const newProgram = {
+      id: req.body.id,
+      name: req.body.name
+    };
+  
+    // Insert the new program into the 'programs' table
+    db.run(`INSERT INTO programs (id, name) VALUES (?, ?)`, [newProgram.id, newProgram.name], function(err) {
+      if (err) {
+        console.error(err.message); // Log the actual DB error
+        return res.status(500).send('Error creating program'); // Send a generic error response
+      }
+  
+      // Log the insertion and return the created program in the response
+      console.log(`A row has been inserted with rowid ${this.lastID}`);
+      res.status(201).send(newProgram);
+    });
+  });
+  
