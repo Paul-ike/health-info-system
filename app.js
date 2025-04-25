@@ -119,3 +119,22 @@ app.post('/programs', (req, res) => {
     });
   });
   
+  app.get('/clients', (req, res) => {
+    const query = req.query.query;
+    let sql = `SELECT * FROM clients`;
+    let params = [];
+  
+    if (query) {
+      sql += ` WHERE name LIKE ?`;
+      params.push(`%${query}%`);
+    }
+  
+    db.all(sql, params, (err, rows) => {
+      if (err) {
+        console.error(err.message);
+        return res.status(500).send('Error fetching clients');
+      }
+      res.send(rows);
+    });
+  });
+  
