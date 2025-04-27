@@ -50,46 +50,34 @@ A basic health information system for managing clients and health programs/servi
 
 2.  Access the API endpoints:
 
-    The API is available at `http://localhost:3000`. Use Thunder Client or a similar tool to test the endpoints.
+    The live API is available at: [https://health-info-system-mkzf.onrender.com](https://health-info-system-mkzf.onrender.com). Use Thunder Client or a similar tool to test the endpoints.
 
     **Sample Requests (using curl):**
 
-    *   **Register a new user:**
-
-        ```
-        curl -X POST -H "Content-Type: application/json" -d '{"username": "testuser", "password": "password123"}' http://localhost:3000/register
-        ```
-    *   **Login:**
-
-        ```
-        curl -X POST -H "Content-Type: application/json" -d '{"username": "testuser", "password": "password123"}' http://localhost:3000/login
-        ```
-
-        (This will return a JWT token. Use this token in the `Authorization` header for subsequent requests.)
     *   **Create a health program:**
 
         ```
-        curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <your_jwt_token>" -d '{"id": "tb1", "name": "Tuberculosis Program"}' http://localhost:3000/programs
+        curl -X POST -H "Content-Type: application/json" -u admin:secret -d '{"id": "tb1", "name": "Tuberculosis Program"}' https://health-info-system-mkzf.onrender.com/programs
         ```
     *   **Register a new client:**
 
         ```
-        curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <your_jwt_token>" -d '{"id": "client1", "name": "John Doe", "dob": "1990-01-01"}' http://localhost:3000/clients
+        curl -X POST -H "Content-Type: application/json" -u admin:secret -d '{"id": "client1", "name": "John Doe", "dob": "1990-01-01"}' https://health-info-system-mkzf.onrender.com/clients
         ```
     *   **Enroll a client in a program:**
 
         ```
-        curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer <your_jwt_token>" -d '{"programId": "tb1"}' http://localhost:3000/clients/client1/enroll
+        curl -X POST -H "Content-Type: application/json" -u admin:secret -d '{"programId": "tb1"}' https://health-info-system-mkzf.onrender.com/clients/client1/enroll
         ```
     *   **Search for a client:**
 
         ```
-        curl -X GET -H "Authorization: Bearer <your_jwt_token>" "http://localhost:3000/clients?query=John"
+        curl -X GET -u admin:secret "https://health-info-system-mkzf.onrender.com/clients?query=john"
         ```
     *   **View a client's profile:**
 
         ```
-        curl -X GET -H "Authorization: Bearer <your_jwt_token>" http://localhost:3000/clients/client1
+        curl -X GET -u admin:secret https://health-info-system-mkzf.onrender.com/clients/client1
         ```
 
     **Authentication:** All API endpoints are protected with basic authentication. Use the username `admin` and password `secret`.
