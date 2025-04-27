@@ -123,3 +123,9 @@ Contributions are welcome! Please open an issue or submit a pull request.
 ## License
 
 [MIT License](LICENSE)
+
+## Additional Information
+
+The PowerPoint presentation (`Health Info system.pptx`) is included in this repository.
+
+The Prototype Demonstration (`screen-capture.webm`) is included in this repository.
