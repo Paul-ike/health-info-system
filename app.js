@@ -4,7 +4,7 @@ const bodyParser = require('body-parser'); // Import the body-parser middleware
 const sqlite3 = require('sqlite3').verbose(); // Import the SQLite3 and enabling verbose mode for better debugging
 
 const app = express(); // Create an Express application instance
-const port = 3000; // Define the port the server will listen on
+const port = process.env.PORT || 3000; // Define the port the server will listen on
 
 const Joi = require('joi'); // Import Joi for validation
 
